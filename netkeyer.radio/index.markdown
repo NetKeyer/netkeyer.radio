@@ -1,0 +1,298 @@
+---
+# Feel free to add content and custom Front Matter to this file.
+# To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
+
+#layout: home
+---
+
+
+# NetKeyer - FlexRadio CW Keyer
+
+A cross-platform GUI application for CW (Morse code) keying with FlexRadio devices, supporting both serial port and MIDI input devices.
+
+## Download
+
+[Download pre-built binaries of NetKeyer now!](https://github.com/NetKeyer/NetKeyer/releases/latest)
+
+## Features
+
+- **Cross-Platform**: Runs on Linux, Windows, and macOS using Avalonia UI
+- **Radio Discovery**: Automatic discovery of FlexRadio devices on the network
+  - Local network discovery
+  - SmartLink remote connection support
+  - Sidetone-only practice mode (no radio required)
+- **Multiple Input Device Types**:
+  - Serial port (HaliKey v1)
+  - MIDI devices (HaliKey MIDI, CTR2, and other MIDI controllers)
+  - Configurable MIDI note mappings for paddles, straight key, and PTT
+- **CW Controls**:
+  - Speed adjustment (5-60 WPM)
+  - Sidetone volume control (0-100)
+  - Pitch control (300-1000 Hz)
+  - Iambic Mode A/B selection
+  - Straight Key mode
+  - Paddle swap option
+- **Local Sidetone Generation**:
+  - Low latency audio using platform-optimized backends
+  - PortAudio for cross-platform compatibility
+  - WASAPI for Windows
+- **PTT Support**:
+  - Supports PTT keying for non-CW modes
+
+## Requirements
+
+- .NET 8.0 SDK
+- FlexRadio device on the network (or use sidetone-only mode for practice)
+- Input device:
+  - Serial port device (e.g., HaliKey v1/v2), OR
+  - MIDI controller (e.g., HaliKey MIDI, CTR2)
+
+## Building from Source
+
+If you don't want to use the [pre-built binaries](https://github.com/NetKeyer/NetKeyer/releases/latest), you can build from source directly.
+
+```bash
+cd NetKeyer
+dotnet build
+```
+
+## Running
+
+```bash
+cd NetKeyer
+dotnet run
+```
+
+## Usage
+
+### Setup Page
+
+1. **SmartLink (Optional)**: Click "Enable SmartLink" to connect to remote radios via FlexRadio SmartLink
+2. **Select Radio**:
+   - Click "Refresh" to discover FlexRadio devices
+   - Select a radio and GUI client station from the dropdown, OR
+   - Select "No radio (sidetone only)" for practice mode
+3. **Select Input Device Type**: Choose between:
+   - Serial Port (HaliKey v1) - uses CTS (left) and DCD (right) pins
+   - MIDI (HaliKey MIDI, CTR2) - uses configurable MIDI note mappings
+4. **Choose Input Device**:
+   - For Serial: Select the serial port connected to your keyer/paddle
+   - For MIDI: Select the MIDI device, then optionally click "Configure MIDI Notes..." to customize mappings
+5. **Connect**: Click "Connect" to begin operating
+
+### Operating Page
+
+1. **Monitor Paddle Status**: Visual indicators show left/right paddle state in real-time
+2. **Adjust CW Settings**:
+   - Speed (WPM): Controls dit/dah timing
+   - Sidetone: Volume of local audio feedback
+   - Pitch: Frequency of sidetone tone
+3. **Select Keyer Mode**:
+   - Iambic: Automatic dit/dah generation with Mode A or Mode B
+   - Straight Key: Direct on/off control
+4. **Swap Paddles**: Reverse left/right paddle assignment if needed
+5. **Disconnect**: Return to setup page to change settings
+
+## MIDI Configuration
+
+The MIDI note configuration dialog allows you to assign any MIDI note (0-127) to one or more functions:
+- **Left Paddle**: Generates dits in iambic mode
+- **Right Paddle**: Generates dahs in iambic mode
+- **Straight Key**: Direct key on/off control
+- **PTT**: Push-to-talk for non-CW modes
+
+Default mappings (compatible with HaliKey MIDI and CTR2):
+- Note 20: Left Paddle + Straight Key + PTT
+- Note 21: Right Paddle + Straight Key + PTT
+- Note 30: Straight Key only
+- Note 31: PTT only
+
+## Troubleshooting
+
+### Connection Issues
+
+**Radio not found**:
+- Ensure radio is on the same network
+- Check firewall settings
+- Try SmartLink if local discovery fails
+
+**GUI client binding fails**:
+- Radio needs SmartSDR or another GUI client running
+- Wait a moment after connecting before binding
+
+### Audio Issues
+
+**No sidetone**:
+- Check sidetone volume slider
+- Verify system audio is not muted
+- Check audio output device in your system mixer
+
+**High latency**:
+- Windows: Ensure WASAPI backend is being used
+- Linux: Check PulseAudio/PipeWire configuration
+- Adjust buffer size if needed
+
+### Input Device Issues
+
+**Serial port not found**:
+- Check device permissions (Linux: add user to `dialout` group)
+- Verify device is connected
+- Click "Refresh" to rescan
+
+**MIDI device not responding**:
+- Verify MIDI device is connected and powered
+- Check MIDI note mappings match your device
+- Use "Configure MIDI Notes..." to adjust mappings
+
+### Debug Logging
+
+NetKeyer supports detailed debug logging controlled by the `NETKEYER_DEBUG` environment variable. This can help diagnose issues with specific subsystems.
+
+**Log File Location**:
+
+Debug messages are automatically written to a log file in the NetKeyer application data folder:
+- **Windows**: `%APPDATA%\NetKeyer\debug.log`
+- **Linux**: `~/.config/NetKeyer/debug.log`
+- **macOS**: `~/Library/Application Support/NetKeyer/debug.log`
+
+You can easily access the log folder via **Help → View Debug Log...** in the application menu.
+
+**Note**: On Windows, GUI applications don't show console output when run outside a debugger. Debug messages are always written to the log file, making them accessible even when the console isn't visible.
+
+**Available Debug Categories**:
+
+| Category | Description |
+|----------|-------------|
+| `keyer` | Iambic keyer state machine (paddle state, element timing, mode transitions) |
+| `midi` | MIDI input parsing and raw event processing |
+| `input` | Input abstraction layer (paddle state changes, indicator updates) |
+| `slice` | Transmit slice mode monitoring (CW vs PTT mode detection) |
+| `sidetone` | Audio sidetone provider (tone/silence state machine, timing) |
+| `audio` | Audio device management (initialization, enumeration, selection) |
+
+**Usage Examples**:
+
+**Linux/macOS**:
+```bash
+# Enable all debug output
+NETKEYER_DEBUG=all dotnet run
+
+# Enable specific categories
+NETKEYER_DEBUG=keyer,midi dotnet run
+
+# Enable all MIDI-related categories using wildcard
+NETKEYER_DEBUG=midi* dotnet run
+```
+
+**Windows PowerShell**:
+```powershell
+# Enable all debug output
+$env:NETKEYER_DEBUG="all"
+dotnet run
+
+# Enable specific categories
+$env:NETKEYER_DEBUG="keyer,midi"
+dotnet run
+```
+
+**Windows CMD**:
+```cmd
+# Enable all debug output
+set NETKEYER_DEBUG=all
+dotnet run
+
+# Enable specific categories
+set NETKEYER_DEBUG=keyer,midi
+dotnet run
+```
+
+**Common Debugging Scenarios**:
+
+- **Paddle not working**: Use `NETKEYER_DEBUG=input,keyer` to see paddle state changes and keyer logic
+- **MIDI issues**: Use `NETKEYER_DEBUG=midi,input` to see raw MIDI events and parsed paddle states
+- **Audio problems**: Use `NETKEYER_DEBUG=audio,sidetone` to see device initialization and tone generation
+- **Radio connection issues**: Use `NETKEYER_DEBUG=slice` to see transmit mode detection
+
+---
+
+## Developer Information
+
+### Project Structure
+
+```
+NetKeyer/
+├── Views/                  # XAML UI layouts
+├── ViewModels/             # Application logic and data binding
+│   ├── MainWindowViewModel.cs
+│   ├── MidiConfigDialogViewModel.cs
+│   ├── AudioDeviceDialogViewModel.cs
+│   └── AboutWindowViewModel.cs
+├── Models/                 # Data models
+│   ├── UserSettings.cs
+│   ├── MidiNoteMapping.cs
+│   └── AudioDeviceInfo.cs
+├── Services/               # Core application services
+│   ├── InputDeviceManager.cs
+│   ├── KeyingController.cs
+│   ├── RadioSettingsSynchronizer.cs
+│   ├── SmartLinkManager.cs
+│   └── TransmitSliceMonitor.cs
+├── Audio/                  # Sidetone generation
+│   ├── SidetoneGeneratorFactory.cs
+│   └── ISidetoneGenerator.cs
+│   ├── SidetoneGenerator.cs (PortAudio)
+│   ├── WasapiSidetoneGenerator.cs (Windows WASAPI)
+│   ├── SidetoneProvider.cs (waveform generation)
+├── Midi/                   # MIDI input handling
+│   └── MidiPaddleInput.cs
+├── Keying/                 # Iambic keyer logic
+│   └── IambicKeyer.cs
+├── SmartLink/              # SmartLink authentication
+│   ├── SmartLinkAuthService.cs
+│   ├── SmartLinkModels.cs
+├── Helpers/                # Utility classes
+│   ├── DebugLogger.cs
+│   └── UrlHelper.cs
+├── lib/                    # Compiled FlexRadio libraries
+```
+
+### Input Device Support
+
+**Serial Port (HaliKey v1)**:
+- HaliKey v1: CTS (left paddle) + DSR (right paddle)
+
+**MIDI Devices**:
+- Supports any MIDI controller with configurable note mappings
+    - Tested with HaliKey MIDI and CTR2-MIDI
+- Note On/Off events trigger paddle/key/PTT state changes
+
+### Iambic Keyer Implementation
+
+- Software-based iambic keyer with Mode A and Mode B support
+- State machine is based on audio timings
+
+### Audio Sidetone
+
+**WASAPI Backend** (Windows preferred):
+- Lowest latency
+
+**PortAudio Backend**:
+- Cross-platform compatibility for Linux and macOS
+- Supports Windows DirectSound and ASIO in case WASAPI doesn't work for some reason
+
+### Settings Persistence
+
+User settings are stored in:
+- Linux: `~/.config/NetKeyer/settings.json`
+- Windows: `%APPDATA%\NetKeyer\settings.json`
+- macOS: `~/Library/Application Support/NetKeyer/settings.json`
+
+Stored settings include:
+- Selected radio (serial number and GUI client station)
+- Input device type and selection
+- MIDI note mappings
+- SmartLink credentials (encrypted)
+
+## License
+
+FlexLib components are Copyright © 2018-2024 FlexRadio Systems. All rights reserved.
