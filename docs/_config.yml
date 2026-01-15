@@ -28,7 +28,6 @@ url: "https://netkeyer.radio/" # the base hostname & protocol for your site, e.g
 #twitter_username: jekyllrb
 github_username:  NetKeyer
 
-desgination: ../docs/
 # Build settings
 #theme: architect
 plugins:
